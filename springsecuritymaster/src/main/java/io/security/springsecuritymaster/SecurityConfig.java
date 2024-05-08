@@ -1,5 +1,6 @@
 package io.security.springsecuritymaster;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -19,27 +20,36 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http.authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
-            .formLogin(Customizer.withDefaults());
+                .formLogin(form -> form
+                        .loginPage("/loginPage")
+                        .loginProcessingUrl("/loginProc")
+                        .defaultSuccessUrl("/", true)
+                        .failureUrl("/login")
+                        .usernameParameter("userId")
+                        .passwordParameter("passwd")
+//                        .successHandler((request, response, authentication) -> {
+//                            System.out.println("authentication: " + authentication.getName());
+//                            response.sendRedirect("/home");
+//                        })
+//                        .failureHandler((request, response, exception) -> {
+//                            System.out.println("exception: " + exception.getMessage());
+//                            response.sendRedirect("/login");
+//                        })
+                        .permitAll()
+                );
+
         return http.build();
 
     }
 
-//    @Bean
+    @Bean
     public UserDetailsService userDetailsService() {
         UserDetails user = User.withUsername("user")
                 .password("{noop}1111")
                 .roles("USER")
                 .build();
-        UserDetails user2 = User.withUsername("user2")
-                .password("{noop}1111")
-                .roles("USER")
-                .build();
-        UserDetails user3 = User.withUsername("user3")
-                .password("{noop}1111")
-                .roles("USER")
-                .build();
 
-        return new InMemoryUserDetailsManager(user, user2, user3);
+        return new InMemoryUserDetailsManager(user);
 
     }
 }
